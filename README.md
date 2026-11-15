@@ -51,9 +51,6 @@ Browser version (once `app_streamlit.py` is added):
 
     streamlit run app_streamlit.py
 
-## Tests
-    python -m pytest
-
 ## Files
 | File | Purpose |
 |---|---|
