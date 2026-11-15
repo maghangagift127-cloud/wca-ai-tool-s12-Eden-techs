@@ -51,9 +51,6 @@ Browser version (once `app_streamlit.py` is added):
 
     streamlit run app_streamlit.py
 
-## Tests
-    python -m pytest
-
 ## Files
 | File | Purpose |
 |---|---|
@@ -65,7 +62,6 @@ Browser version (once `app_streamlit.py` is added):
 | config.py | Shared constants |
 | requirements.txt | List of libraries to install |
 | samples/ | One saved session from our own testing |
-| docs/ | Test and bug log |
 | sessions/ | Created automatically when the first session is saved (not committed) |
 
 ## Known limitations
