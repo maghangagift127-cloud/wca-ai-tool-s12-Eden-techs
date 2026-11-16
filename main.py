@@ -211,4 +211,5 @@ def main():
             print("Please type 1, 2 or 3.")
 
 
-main()
+if __name__ == "__main__":
+    main()
