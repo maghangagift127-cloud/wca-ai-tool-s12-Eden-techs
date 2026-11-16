@@ -15,7 +15,7 @@ PAYMENT_METHODS = ["send_money", "buy_goods", "paybill", "cash"]
 END_WORDS = ["end", "end session", "quit session", "done"]
 
 # Gemini model name and settings. TODO (Member 2): confirm the model name and parameters.
-MODEL_NAME = "gemini-2.5-flash"
+MODEL_NAME = "gemini-3.8-flash"
 MODEL_TEMPERATURE = 0.2
 
 # Draft Send Money fee bands (lower, upper, fee in KSh). Section 3.2.
