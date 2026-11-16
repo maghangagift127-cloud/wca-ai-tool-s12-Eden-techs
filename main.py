@@ -54,10 +54,13 @@ def process_turn(session, text):
     if data["intent"] == "spending_enquiry":
         category = data["query"]["category"]
         if category == "all":
-            figure = expense_tracker.get_totals(tracker)
+            totals = expense_tracker.get_totals(tracker)
+            line = "Spending " + expense_tracker.money(totals["purchase_total"])
+            line = line + ", fees " + expense_tracker.money(totals["fee_total"])
+            line = line + ", total outflow " + expense_tracker.money(totals["total_outflow"])
         else:
-            figure = expense_tracker.get_category_total(tracker, category)
-        extra.append("Calculated by the tool: " + str(figure))
+            line = category + ": " + expense_tracker.money(expense_tracker.get_category_total(tracker, category))
+        extra.append("Calculated by the tool: " + line)
 
     return {"kind": "reply", "message": data["message"], "extra": extra}
 
@@ -67,6 +70,7 @@ def finish_session(session):
     report = expense_tracker.build_report(session["tracker"])
     session["report"] = report
     session["summary"] = None
+    session["summary_status"] = "unavailable"
     error = None
 
     if len(session["history"]) == 0:
@@ -76,6 +80,7 @@ def finish_session(session):
         session["stats"]["api_calls"] = ai_client.get_api_call_count()
         if result["ok"]:
             session["summary"] = result["data"]
+            session["summary_status"] = "ok"
         else:
             error = result["error"]
 
@@ -165,8 +170,11 @@ def open_past_session():
         return
 
     number = 1
-    for name in files:
-        print(str(number) + ". " + name)
+    for entry in files:
+        line = str(number) + ". " + entry["filename"] + " | " + entry["date"]
+        line = line + " | expenses: " + str(entry["expense_count"])
+        line = line + " | total: " + expense_tracker.money(entry["total_outflow"])
+        print(line)
         number = number + 1
 
     try:
@@ -179,8 +187,11 @@ def open_past_session():
         return
 
     try:
-        saved = session_manager.load_session(files[choice - 1])
-        print(session_manager.display_session(saved))
+        loaded = session_manager.load_session(files[choice - 1]["filename"])
+        if loaded[0] == None:
+            print(loaded[1])  # a clear message: file missing or damaged
+        else:
+            print(session_manager.display_session(loaded[0]))
     except Exception as problem:
         print("Could not open that session:", problem)
 
