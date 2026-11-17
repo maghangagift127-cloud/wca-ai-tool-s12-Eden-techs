@@ -1,17 +1,15 @@
 """
 session_manager.py
-Manages session state, conversation history formatting, strict repeated-question
-reuse, atomic JSON session saving, and loading/displaying past sessions.
+Manages session state, conversation history formatting, atomic JSON session saving,
+and loading/displaying past sessions without unused cache code.
 """
 
 from datetime import datetime, date
 import json
 import os
-import re
 from expense_tracker import new_tracker, money
 
 SESSIONS_DIR = "sessions"
-ELIGIBLE_REUSE_INTENTS = {"chat", "spending_enquiry", "advice"}
 
 
 def new_session():
@@ -30,12 +28,10 @@ def new_session():
         "stats": {
             "api_calls": 0,
             "local_answers": 0,
-            "reused_answers": 0,
         },
         "report": {},
         "summary": None,
         "summary_status": "pending",
-        "_reusable_cache": {},
     }
 
 
@@ -64,57 +60,6 @@ def make_local_reply(text):
         "query": {"category": "all"},
     }
     return json.dumps(payload)
-
-
-def normalise_question(text):
-    """Tidy a user question for repeated-question matching: lowercase, strip punctuation, collapse whitespace."""
-    if not text:
-        return ""
-    cleaned = re.sub(r"[^\w\s]", "", str(text).lower())
-    return " ".join(cleaned.split())
-
-
-def store_reusable_reply(session, text, reply_text, tracker):
-    """Store an eligible Gemini reply in memory for potential reuse during the same session."""
-    norm = normalise_question(text)
-    if len(norm.split()) < 4:
-        return
-
-    try:
-        parsed = json.loads(reply_text)
-        intent = parsed.get("intent")
-    except (json.JSONDecodeError, TypeError, AttributeError):
-        return
-
-    if intent not in ELIGIBLE_REUSE_INTENTS:
-        return
-
-    cache = session.setdefault("_reusable_cache", {})
-    cache[norm] = {
-        "reply_text": reply_text,
-        "tracker_version": tracker.get("version", 0),
-        "date": date.today().isoformat(),
-    }
-
-
-def find_reusable_reply(session, text, tracker):
-    """Return an earlier stored Gemini reply if the question, tracker version, and date match."""
-    norm = normalise_question(text)
-    if len(norm.split()) < 4:
-        return None
-
-    cache = session.get("_reusable_cache", {})
-    entry = cache.get(norm)
-    if not entry:
-        return None
-
-    current_version = tracker.get("version", 0)
-    current_date = date.today().isoformat()
-
-    if entry["tracker_version"] == current_version and entry["date"] == current_date:
-        return entry["reply_text"]
-
-    return None
 
 
 def _next_session_filepath(date_str):
@@ -147,7 +92,7 @@ def save_session(session):
         "ended": session["ended"],
         "history": session.get("history", []),
         "tracker": session.get("tracker", {"expenses": [], "version": 0}),
-        "stats": session.get("stats", {"api_calls": 0, "local_answers": 0, "reused_answers": 0}),
+        "stats": session.get("stats", {"api_calls": 0, "local_answers": 0}),
         "report": session.get("report", {}),
         "summary": session.get("summary"),
         "summary_status": session.get("summary_status", "unavailable" if not session.get("summary") else "ok"),
@@ -162,7 +107,7 @@ def save_session(session):
 
 
 def list_sessions():
-    """List all saved JSON sessions in sessions/ with metadata."""
+    """List all saved JSON sessions in sessions/ with metadata using standard for loops."""
     os.makedirs(SESSIONS_DIR, exist_ok=True)
     files = sorted(
         f for f in os.listdir(SESSIONS_DIR)
@@ -182,10 +127,13 @@ def list_sessions():
             expenses = (data.get("tracker") or {}).get("expenses", [])
 
             expense_count = report.get("expense_count", len(expenses))
-            total_outflow = report.get(
-                "total_outflow",
-                sum(float(item.get("total_outflow", 0)) for item in expenses),
-            )
+            
+            # Replaced sum() with explicit for loop accumulator
+            total_outflow_accum = 0.0
+            for item in expenses:
+                total_outflow_accum = total_outflow_accum + float(item.get("total_outflow", 0))
+
+            total_outflow = report.get("total_outflow", total_outflow_accum)
             summary_status = data.get(
                 "summary_status",
                 "ok" if data.get("summary") else "unavailable",
@@ -213,7 +161,7 @@ def list_sessions():
 
 
 def load_session(filename):
-    """Safely load a saved session JSON file by filename or path."""
+    """Safely load a saved session JSON file by filename or path using explicit checks instead of setdefault."""
     filepath = filename if os.path.dirname(filename) else os.path.join(SESSIONS_DIR, filename)
 
     if not os.path.exists(filepath):
@@ -228,18 +176,28 @@ def load_session(filename):
     if not isinstance(data, dict):
         return None, f"Session file '{filename}' has an invalid format."
 
-    data.setdefault("session_id", os.path.basename(filepath))
-    data.setdefault("started", "Unknown")
-    data.setdefault("ended", "Unknown")
-    data.setdefault("history", [])
-    data.setdefault("tracker", {"expenses": [], "version": 0})
-    stats = data.setdefault("stats", {})
-    stats.setdefault("api_calls", 0)
-    stats.setdefault("local_answers", 0)
-    stats.setdefault("reused_answers", 0)
-    data.setdefault("report", {})
-    data.setdefault("summary", None)
-    data.setdefault("summary_status", "ok" if data.get("summary") else "unavailable")
+    if "session_id" not in data:
+        data["session_id"] = os.path.basename(filepath)
+    if "started" not in data:
+        data["started"] = "Unknown"
+    if "ended" not in data:
+        data["ended"] = "Unknown"
+    if "history" not in data:
+        data["history"] = []
+    if "tracker" not in data:
+        data["tracker"] = {"expenses": [], "version": 0}
+    if "stats" not in data:
+        data["stats"] = {}
+    if "api_calls" not in data["stats"]:
+        data["stats"]["api_calls"] = 0
+    if "local_answers" not in data["stats"]:
+        data["stats"]["local_answers"] = 0
+    if "report" not in data:
+        data["report"] = {}
+    if "summary" not in data:
+        data["summary"] = None
+    if "summary_status" not in data:
+        data["summary_status"] = "ok" if data.get("summary") else "unavailable"
 
     return data, None
 
@@ -325,8 +283,7 @@ def display_session(session):
     stats = session.get("stats", {})
     lines.append(
         f"\n[Stats] API calls: {stats.get('api_calls', 0)} | "
-        f"Local Python answers: {stats.get('local_answers', 0)} | "
-        f"Reused answers: {stats.get('reused_answers', 0)}"
+        f"Local Python answers: {stats.get('local_answers', 0)}"
     )
 
     return "\n".join(lines)
