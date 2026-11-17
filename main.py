@@ -45,11 +45,12 @@ def process_turn(session, text):
 
     # Act on what Gemini understood.
     if data["intent"] == "record_expense":
-        try:
-            record = expense_tracker.add_expense(tracker, data["expense"])
-            extra.append("Expense recorded: " + str(record.get("description")) + ", fee " + str(record.get("fee")))
-        except Exception as problem:
-            extra.append("Sorry, I could not record that expense: " + str(problem))
+        for expense in data["expenses"]:
+            try:
+                record = expense_tracker.add_expense(tracker, expense)
+                extra.append("Expense recorded: " + str(record.get("description")) + ", " + expense_tracker.money(record.get("amount")) + ", fee " + expense_tracker.money(record.get("fee")))
+            except Exception as problem:
+                extra.append("Sorry, I could not record that expense: " + str(problem))
 
     if data["intent"] == "spending_enquiry":
         category = data["query"]["category"]

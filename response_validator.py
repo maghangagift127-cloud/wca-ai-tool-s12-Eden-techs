@@ -39,6 +39,25 @@ def read_json(raw_text):
     return {"ok": True, "data": data, "error": None}
 
 
+# Checks one expense and returns an error message, or None when it is fine.
+def check_expense(expense):
+    if type(expense) != dict:
+        return "Each expense must be an object."
+    if not is_text(expense.get("description")):
+        return "The expense description is missing or blank."
+    amount = expense.get("amount")
+    if not is_number(amount) or amount <= 0:
+        return "The expense amount must be a number above 0."
+    if expense.get("category") not in config.CATEGORIES:
+        return "The expense category is not allowed."
+    if expense.get("payment_method") not in config.PAYMENT_METHODS:
+        return "The payment method is not allowed."
+    fee = expense.get("reported_fee")  # None (null) or 0 are both fine
+    if fee != None and (not is_number(fee) or fee < 0):
+        return "reported_fee must be null or a number of 0 or more."
+    return None
+
+
 # Checks a normal reply: the right fields, not blank, and allowed values.
 def validate_reply(raw_text):
     result = read_json(raw_text)
@@ -53,21 +72,16 @@ def validate_reply(raw_text):
         return fail("The message is missing or blank.")
 
     if intent == "record_expense":
-        expense = data.get("expense")
-        if type(expense) != dict:
-            return fail("record_expense needs an expense object.")
-        if not is_text(expense.get("description")):
-            return fail("The expense description is missing or blank.")
-        amount = expense.get("amount")
-        if not is_number(amount) or amount <= 0:
-            return fail("The expense amount must be a number above 0.")
-        if expense.get("category") not in config.CATEGORIES:
-            return fail("The expense category is not allowed.")
-        if expense.get("payment_method") not in config.PAYMENT_METHODS:
-            return fail("The payment method is not allowed.")
-        fee = expense.get("reported_fee")  # None (null) or 0 are both fine
-        if fee != None and (not is_number(fee) or fee < 0):
-            return fail("reported_fee must be null or a number of 0 or more.")
+        expenses = data.get("expenses")
+        if expenses == None and type(data.get("expense")) == dict:
+            expenses = [data["expense"]]  # the old single-expense shape is still accepted
+        if type(expenses) != list or len(expenses) == 0:
+            return fail("record_expense needs a list of expenses.")
+        for expense in expenses:
+            error = check_expense(expense)
+            if error != None:
+                return fail(error)
+        data["expenses"] = expenses
 
     if intent == "spending_enquiry":
         query = data.get("query")
