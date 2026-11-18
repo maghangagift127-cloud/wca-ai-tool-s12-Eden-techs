@@ -2,6 +2,7 @@
 # It reuses main.py (process_turn, finish_session), so there is no extra logic here.
 
 import os
+from datetime import datetime
 
 import streamlit as st
 
@@ -119,21 +120,34 @@ if budget > 0:
     if used > budget:
         budget_box.error("Over budget by " + expense_tracker.money(used - budget))
 
-# Sidebar: open a past session (no Gemini call). Newest first, with a readable label.
+# Sidebar: open a past session (no Gemini call). Newest first, with a descriptive label
+# such as "17 Nov 2026, 09:01 | Transport, Rent, Lunch | KSh 15,744".
 st.sidebar.divider()
 st.sidebar.subheader("Past sessions")
 labels = {}
-number = 1
 for entry in session_manager.list_sessions():
-    label = "#" + str(number) + "  " + entry["date"] + "  " + expense_tracker.money(entry["total_outflow"])
-    labels[label] = entry["filename"]
-    number = number + 1
+    loaded = session_manager.load_session(entry["filename"])
+    when = entry["date"]
+    names = []
+    if loaded[0] != None:
+        try:
+            when = datetime.fromisoformat(str(loaded[0].get("started"))).strftime("%d %b %Y, %H:%M")
+        except ValueError:
+            pass
+        for item in loaded[0]["tracker"]["expenses"]:
+            names.append(item["description"])
+    what = ", ".join(names[:3])
+    if len(names) > 3:
+        what = what + " +" + str(len(names) - 3) + " more"
+    if len(names) == 0:
+        what = "No expenses"
+    labels[when + " | " + what + " | " + expense_tracker.money(entry["total_outflow"])] = entry["filename"]
 if len(labels) == 0:
     st.sidebar.write("None yet.")
 else:
     options = list(labels)
     options.reverse()
-    chosen = st.sidebar.selectbox("Open one", options)
+    chosen = st.sidebar.radio("Open one", options)
     if st.sidebar.button("Show"):
         loaded = session_manager.load_session(labels[chosen])
         if loaded[0] == None:
