@@ -10,8 +10,8 @@ import expense_tracker
 import main
 import session_manager
 
-st.set_page_config(page_title="M-Pesa Expense Coach", page_icon="💰")
-st.title("💰 M-Pesa Expense Coach")
+st.set_page_config(page_title="M-Pesa Expense Coach")
+st.title("M-Pesa Expense Coach")
 st.caption(main.NOTICE)
 
 
