@@ -175,6 +175,14 @@ def get_latest_expense(tracker):
     return expenses[-1]
 
 
+def has_any(text, phrases):
+    """Return True if any phrase from the list appears in the text."""
+    for phrase in phrases:
+        if phrase in text:
+            return True
+    return False
+
+
 def answer_local_question(tracker, text):
     """
     Narrow local handler for clear, straightforward spending questions.
@@ -195,7 +203,7 @@ def answer_local_question(tracker, text):
     q = q.strip()
 
     # 1. Latest / last expense
-    if any(phrase in q for phrase in ["latest expense", "last expense", "what did i just", "last thing i bought"]):
+    if has_any(q, ["latest expense", "last expense", "what did i just", "last thing i bought"]):
         latest = get_latest_expense(tracker)
         if not latest:
             return "You have not recorded any expenses in this session yet."
@@ -206,17 +214,17 @@ def answer_local_question(tracker, text):
         )
 
     # 2. Total transaction fees
-    if any(phrase in q for phrase in ["total fees", "mpesa fees", "transaction fees", "how much in fees", "fees so far"]):
+    if has_any(q, ["total fees", "mpesa fees", "transaction fees", "how much in fees", "fees so far"]):
         totals = get_totals(tracker)
         return f"Your total recorded M-Pesa transaction fees so far are {money(totals['fee_total'])}."
 
     # 3. Today's spending
-    if any(phrase in q for phrase in ["spent today", "today spending", "todays spending", "total today"]):
+    if has_any(q, ["spent today", "today spending", "todays spending", "total today"]):
         today_total = get_spending(tracker, today_only=True)
         return f"Your total cash outflow recorded today is {money(today_total)}."
 
     # 4. Overall total spending so far
-    if any(phrase in q for phrase in ["total spent", "spent so far", "how much have i spent", "total spending", "total outflow"]):
+    if has_any(q, ["total spent", "spent so far", "how much have i spent", "total spending", "total outflow"]):
         totals = get_totals(tracker)
         return (
             f"So far, you have recorded {totals['expense_count']} expense(s): "
@@ -235,9 +243,9 @@ def answer_local_question(tracker, text):
         "other": ["other"],
     }
 
-    if any(trigger in q for trigger in ["how much", "total", "spent on", "spending on"]):
+    if has_any(q, ["how much", "total", "spent on", "spending on"]):
         for cat_key, keywords in category_aliases.items():
-            if any(kw in q for kw in keywords):
+            if has_any(q, keywords):
                 cat_total = get_category_total(tracker, cat_key)
                 return f"You have spent {money(cat_total)} on {cat_key.replace('_', ' ')} so far."
 
@@ -266,6 +274,8 @@ def build_report(tracker):
     category_breakdown = {}
     purchase_base = totals["purchase_total"]
     for cat, amt in category_totals.items():
+        if cat == "transaction_cost":
+            continue  # withdrawal charges are counted as fees, not as spending
         if amt > 0:
             share = round((amt / purchase_base) * 100, 1) if purchase_base > 0 else 0.0
             category_breakdown[cat] = {
