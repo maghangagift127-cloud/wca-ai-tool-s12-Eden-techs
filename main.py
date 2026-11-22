@@ -22,7 +22,7 @@ def process_turn(session, text):
     tracker = session["tracker"]
     session_manager.add_message(session, "user", text)
 
-    # Python answers simple spending questions itself (no Gemini call).
+    # Python answers simple spending questions itself (no AI call).
     answer = expense_tracker.answer_local_question(tracker, text)
     if answer != None:
         reply_text = session_manager.make_local_reply(answer)
@@ -32,7 +32,7 @@ def process_turn(session, text):
             session["stats"]["local_answers"] = session["stats"]["local_answers"] + 1
             return {"kind": "reply", "message": check["data"]["message"], "extra": []}
 
-    # Otherwise ask Gemini with the FULL history (one retry happens inside).
+    # Otherwise ask Claude with the FULL history (one retry happens inside).
     result = response_validator.get_valid_reply(session["history"])
     session["stats"]["api_calls"] = ai_client.get_api_call_count()
     if not result["ok"]:
@@ -43,7 +43,7 @@ def process_turn(session, text):
     session_manager.add_message(session, "model", result["raw"])
     extra = []
 
-    # Act on what Gemini understood.
+    # Act on what Claude understood.
     if data["intent"] == "record_expense":
         for expense in data["expenses"]:
             try:
@@ -159,7 +159,7 @@ def start_new_session():
     run_session(session)
 
 
-# Lists saved sessions, lets the user pick one and displays it (no Gemini call).
+# Lists saved sessions, lets the user pick one and displays it (no AI call).
 def open_past_session():
     try:
         files = session_manager.list_sessions()

@@ -1,4 +1,4 @@
-# response_validator.py - checks every Gemini reply before the user sees it.
+# response_validator.py - checks every Claude reply before the user sees it.
 # Every check returns a dictionary: {"ok": True or False, "data": ..., "error": ...}
 
 import json
@@ -6,7 +6,7 @@ import json
 import ai_client
 import config
 
-# The reply types Gemini is allowed to send.
+# The reply types Claude is allowed to send.
 INTENTS = ["chat", "clarify", "record_expense", "spending_enquiry", "advice"]
 
 
@@ -119,7 +119,7 @@ def give_up(error):
     return {"ok": False, "data": None, "raw": None, "error": message}
 
 
-# Asks Gemini with the full history, checks the reply, and tries once more if it is bad.
+# Asks Claude with the full history, checks the reply, and tries once more if it is bad.
 def get_valid_reply(history):
     error = "Unknown error."
     for attempt in range(2):  # first try, then one retry
@@ -135,7 +135,7 @@ def get_valid_reply(history):
     return give_up(error)
 
 
-# Asks Gemini for the final summary (full history and report), with one retry.
+# Asks Claude for the final summary (full history and report), with one retry.
 def get_valid_summary(history, report):
     error = "Unknown error."
     for attempt in range(2):

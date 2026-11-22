@@ -13,9 +13,9 @@ PAYMENT_METHODS = ["send_money", "buy_goods", "paybill", "cash"]
 # Words the user can type to end a session
 END_WORDS = ["end", "end session", "quit session", "done"]
 
-# Gemini model name and temperature (a low value gives steadier, more predictable replies)
-MODEL_NAME = "gemini-3.5-flash-lite"
-MODEL_TEMPERATURE = 0.2
+# Claude model name and the longest reply we allow, in tokens.
+MODEL_NAME = "claude-haiku-5-5"
+MAX_TOKENS = 1024
 
 # Send Money fee bands: (lowest amount, highest amount, fee), all in KSh.
 SEND_MONEY_FEES = [

@@ -37,7 +37,7 @@ def new_session():
 
 def add_message(session, role, text):
     """
-    Append an ordered message dictionary to session['history'] in Gemini format.
+    Append an ordered message dictionary to session['history'] in the tool's message format (role and parts).
     Role must be 'user' or 'model'.
     """
     if role not in ("user", "model"):
@@ -50,7 +50,7 @@ def add_message(session, role, text):
 
 def make_local_reply(text):
     """
-    Wrap a local Python-calculated answer in the shared Gemini JSON response shape
+    Wrap a local Python-calculated answer in the shared JSON reply shape
     so it can be validated and stored cleanly in conversation history.
     """
     payload = {
@@ -81,11 +81,13 @@ def save_session(session):
     now = datetime.now()
     date_str = now.strftime("%Y-%m-%d")
 
+    # New dated file name, so no old session is overwritten
     filepath, session_id = _next_session_filepath(date_str)
     session["session_id"] = session_id
     if not session.get("ended"):
         session["ended"] = now.isoformat(timespec="seconds")
 
+    # What goes into the file
     data_to_save = {
         "session_id": session["session_id"],
         "started": session.get("started"),
@@ -98,6 +100,7 @@ def save_session(session):
         "summary_status": session.get("summary_status", "unavailable" if not session.get("summary") else "ok"),
     }
 
+    # Write to a temp file, then rename, so a crash cannot leave a half-written file
     tmp_filepath = f"{filepath}.tmp"
     with open(tmp_filepath, "w", encoding="utf-8") as f:
         json.dump(data_to_save, f, indent=2, ensure_ascii=False)
@@ -109,13 +112,16 @@ def save_session(session):
 def list_sessions():
     """List all saved JSON sessions in sessions/ with metadata using standard for loops."""
     os.makedirs(SESSIONS_DIR, exist_ok=True)
-    files = sorted(
-        f for f in os.listdir(SESSIONS_DIR)
-        if f.endswith(".json") and not f.endswith(".tmp")
-    )
+    # Only finished .json files, oldest first
+    files = []
+    for name in os.listdir(SESSIONS_DIR):
+        if name.endswith(".json") and not name.endswith(".tmp"):
+            files.append(name)
+    files.sort()
 
     results = []
     for fname in files:
+        # A damaged file is listed as Unreadable, not a crash
         fpath = os.path.join(SESSIONS_DIR, fname)
         try:
             with open(fpath, "r", encoding="utf-8") as f:
@@ -127,8 +133,8 @@ def list_sessions():
             expenses = (data.get("tracker") or {}).get("expenses", [])
 
             expense_count = report.get("expense_count", len(expenses))
-            
-            # Replaced sum() with explicit for loop accumulator
+
+            # Add up the outflow
             total_outflow_accum = 0.0
             for item in expenses:
                 total_outflow_accum = total_outflow_accum + float(item.get("total_outflow", 0))
@@ -164,6 +170,7 @@ def load_session(filename):
     """Safely load a saved session JSON file by filename or path using explicit checks instead of setdefault."""
     filepath = filename if os.path.dirname(filename) else os.path.join(SESSIONS_DIR, filename)
 
+    # Clear messages for a missing, damaged or wrong-shaped file
     if not os.path.exists(filepath):
         return None, f"Session file '{filename}' was not found."
 
@@ -176,6 +183,7 @@ def load_session(filename):
     if not isinstance(data, dict):
         return None, f"Session file '{filename}' has an invalid format."
 
+    # Fill in any missing field
     if "session_id" not in data:
         data["session_id"] = os.path.basename(filepath)
     if "started" not in data:
@@ -215,6 +223,7 @@ def format_report(report):
         f"Total Cash Outflow      : {money(report.get('total_outflow', 0))}",
     ]
 
+    # Category lines with share of spending
     cat_breakdown = report.get("category_breakdown") or {}
     if cat_breakdown:
         lines.append("\n--- Spending by Category ---")
@@ -222,6 +231,7 @@ def format_report(report):
             label = cat.replace("_", " ").title()
             lines.append(f"  * {label:<18}: {money(info['amount'])} ({info['share_percent']}%)")
 
+    # Outflow for each payment method
     pm_totals = report.get("payment_method_totals") or {}
     if pm_totals:
         lines.append("\n--- Outflow by Payment Method ---")
@@ -250,6 +260,7 @@ def display_session(session):
         "--- CONVERSATION HISTORY ---",
     ]
 
+    # Show each message; for model replies show only the "message" text
     history = session.get("history", [])
     if not history:
         lines.append("(No messages recorded)")

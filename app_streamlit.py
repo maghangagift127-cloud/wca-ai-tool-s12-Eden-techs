@@ -120,7 +120,7 @@ if budget > 0:
     if used > budget:
         budget_box.error("Over budget by " + expense_tracker.money(used - budget))
 
-# Sidebar: open a past session (no Gemini call). Newest first, with a descriptive label
+# Sidebar: open a past session (no AI call). Newest first, with a descriptive label
 # such as "17 Nov 2026, 09:01 | Transport, Rent, Lunch | KSh 15,744".
 st.sidebar.divider()
 st.sidebar.subheader("Past sessions")
