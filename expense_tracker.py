@@ -224,11 +224,12 @@ def answer_local_question(tracker, text):
         return f"Your total cash outflow recorded today is {money(today_total)}."
 
     # 4. Overall total spending so far
-    if has_any(q, ["total spent", "spent so far", "how much have i spent", "total spending", "total outflow"]):
+    if has_any(q, ["total spent", "spent so far", "total spending", "total outflow"]):
         totals = get_totals(tracker)
         return (
             f"So far, you have recorded {totals['expense_count']} expense(s): "
-            f"{money(totals['purchase_total'])} in spending plus {money(totals['fee_total'])} in fees, "
+            f"{money(totals['purcha' \
+            'se_total'])} in spending plus {money(totals['fee_total'])} in fees, "
             f"for a total cash outflow of {money(totals['total_outflow'])}."
         )
 

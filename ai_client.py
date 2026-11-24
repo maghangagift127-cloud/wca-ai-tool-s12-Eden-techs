@@ -49,7 +49,12 @@ def _call_claude(messages, system_prompt):
         system=system_prompt,
         messages=messages,
     )
-    return response.content[0].text
+    # The reply can start with a thinking block, so join only the text blocks.
+    text = ""
+    for block in response.content:
+        if block.type == "text":
+            text = text + block.text
+    return text
 
 
 # Chat call: sends the FULL conversation history with the chat prompt.
