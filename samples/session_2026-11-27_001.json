@@ -1,0 +1,258 @@
+{
+  "session_id": "2026-11-27-001",
+  "started": "2026-11-27T13:23:45",
+  "ended": "2026-11-27T13:36:02",
+  "history": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "I paid 15000 for rent"
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "{\"intent\": \"clarify\", \"message\": \"Thanks for telling me about your KSh 15000 rent payment. How did you pay for it: Send Money, Buy Goods, Paybill or Cash?\"}"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "paybill"
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "{\"intent\": \"clarify\", \"message\": \"Thanks. What was the Paybill transaction cost for your KSh 15000 rent payment? If there was no cost, just say 0.\"}"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "57"
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "{\"intent\": \"record_expense\", \"message\": \"I have recorded your KSh 15000 rent payment with a Paybill transaction cost of KSh 57.\", \"expenses\": [{\"description\": \"Rent\", \"amount\": 15000, \"category\": \"rent_utilities\", \"payment_method\": \"paybill\", \"reported_fee\": 57}]}"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "I bought airtime 100 and paid 350 for lunch with buy goods"
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "{\"intent\": \"clarify\", \"message\": \"Thanks. How did you pay for the KSh 100 airtime: Send Money, Buy Goods, Paybill or Cash? I'll record both the airtime and your KSh 350 lunch (paid by Buy Goods) once I have that.\"}"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "buy goods"
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "{\"intent\": \"record_expense\", \"message\": \"I have recorded your KSh 100 airtime and your KSh 350 lunch, both paid by Buy Goods. Python will calculate the transaction fees.\", \"expenses\": [{\"description\": \"Airtime\", \"amount\": 100, \"category\": \"airtime_wifi\", \"payment_method\": \"buy_goods\", \"reported_fee\": null}, {\"description\": \"Lunch\", \"amount\": 350, \"category\": \"food\", \"payment_method\": \"buy_goods\", \"reported_fee\": null}]}"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "I withdrew 3000 cash from an agent"
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "{\"intent\": \"clarify\", \"message\": \"Thanks for letting me know you withdrew KSh 3000 cash from an agent. Withdrawals aren't counted as spending, but what was the withdrawal charge? If there was no charge, just say 0.\"}"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "52"
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "{\"intent\": \"record_expense\", \"message\": \"I have recorded your KSh 52 withdrawal charge. The KSh 3000 withdrawal itself isn't counted as spending.\", \"expenses\": [{\"description\": \"Withdrawal charge\", \"amount\": 52, \"category\": \"transaction_cost\", \"payment_method\": \"cash\", \"reported_fee\": null}]}"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "what was my first expense?"
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "{\"intent\": \"chat\", \"message\": \"Your first expense was rent of KSh 15000, paid by Paybill, with a Paybill transaction cost of KSh 57.\"}"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "how much have i spent on food"
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "{\"intent\": \"spending_enquiry\", \"message\": \"You have spent KSh 350 on food so far.\", \"expense\": null, \"query\": {\"category\": \"all\"}}"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "who is the president of kenya"
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "{\"intent\": \"chat\", \"message\": \"I can only help with your M-Pesa spending, so I can't answer that. For general questions, try a search engine such as Google or a news website. If you have an expense to record, just tell me.\"}"
+        }
+      ]
+    }
+  ],
+  "tracker": {
+    "expenses": [
+      {
+        "description": "Rent",
+        "amount": 15000.0,
+        "category": "rent_utilities",
+        "payment_method": "paybill",
+        "fee": 57.0,
+        "fee_source": "user_reported",
+        "total_outflow": 15057.0,
+        "recorded_at": "2026-11-27T13:32:52"
+      },
+      {
+        "description": "Airtime",
+        "amount": 100.0,
+        "category": "airtime_wifi",
+        "payment_method": "buy_goods",
+        "fee": 0.0,
+        "fee_source": "agreed_zero_rule",
+        "total_outflow": 100.0,
+        "recorded_at": "2026-11-27T13:33:49"
+      },
+      {
+        "description": "Lunch",
+        "amount": 350.0,
+        "category": "food",
+        "payment_method": "buy_goods",
+        "fee": 0.0,
+        "fee_source": "agreed_zero_rule",
+        "total_outflow": 350.0,
+        "recorded_at": "2026-11-27T13:33:49"
+      },
+      {
+        "description": "Withdrawal charge",
+        "amount": 52.0,
+        "category": "transaction_cost",
+        "payment_method": "cash",
+        "fee": 0.0,
+        "fee_source": "agreed_zero_rule",
+        "total_outflow": 52.0,
+        "recorded_at": "2026-11-27T13:34:30"
+      }
+    ],
+    "version": 4
+  },
+  "stats": {
+    "api_calls": 10,
+    "local_answers": 1
+  },
+  "report": {
+    "expense_count": 4,
+    "purchase_total": 15450.0,
+    "fee_total": 109.0,
+    "total_outflow": 15559.0,
+    "category_breakdown": {
+      "rent_utilities": {
+        "amount": 15000.0,
+        "share_percent": 97.1
+      },
+      "food": {
+        "amount": 350.0,
+        "share_percent": 2.3
+      },
+      "airtime_wifi": {
+        "amount": 100.0,
+        "share_percent": 0.6
+      }
+    },
+    "payment_method_totals": {
+      "paybill": 15057.0,
+      "buy_goods": 450.0,
+      "cash": 52.0
+    },
+    "largest_expense": {
+      "description": "Rent",
+      "amount": 15000.0,
+      "category": "rent_utilities",
+      "payment_method": "paybill",
+      "fee": 57.0,
+      "total_outflow": 15057.0
+    }
+  },
+  "summary": {
+    "overview": "Your recorded spending totals KSh 15,450.00 in purchases, plus KSh 109.00 in transaction fees, for a total outflow of KSh 15,559.00 across 4 recorded items. Rent is by far your biggest expense at KSh 15,000.00, which is 97.1% of your purchases. Food (KSh 350.00, 2.3%) and airtime (KSh 100.00, 0.6%) make up the rest. Your payments went through Paybill (KSh 15,057.00 including fees), Buy Goods (KSh 450.00) and Cash (KSh 52.00). This report only covers the transactions you have recorded so far, so it may not show your full spending.",
+    "recommendations": [
+      "Plan your monthly budget around your rent payment, since it makes up most of your recorded spending, and set aside the full amount before the due date.",
+      "Record every purchase as soon as you make it, including small items like airtime and snacks, so your report shows your true spending.",
+      "Review your fees each month, KSh 109.00 so far, and compare the Paybill and withdrawal charges with other payment options where possible."
+    ]
+  },
+  "summary_status": "ok"
+}
